@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2f6f2">
+  <title>Cifra | Cofre de texto</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17352d;
+      --muted: #647a71;
+      --line: #d7e3dc;
+      --paper: #f2f6f2;
+      --white: #fffefa;
+      --green: #176a53;
+      --green-dark: #124d3f;
+      --mint: #e4f2e9;
+      --orange: #e18b62;
+      --error: #a53e35;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        repeating-linear-gradient(135deg, transparent 0 42px, rgb(23 106 83 / 2.5%) 42px 43px),
+        var(--paper);
+    }
+
+    .page { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar {
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border-radius: 12px 12px 12px 4px; background: var(--green); color: white;
+      font: 700 16px Georgia, serif; letter-spacing: 0;
+    }
+    .brand-name { font: 700 18px Georgia, "Times New Roman", serif; letter-spacing: 0; }
+    .brand-sub { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: 1.3px; }
+    .local-tag { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .local-dot { width: 8px; height: 8px; border-radius: 50%; background: #64a77c; box-shadow: 0 0 0 4px #64a77c1c; }
+
+    .intro { max-width: 700px; padding: 46px 0 27px; animation: appear .5s ease both; }
+    .eyebrow { margin: 0 0 12px; color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: 1.8px; }
+    h1 { margin: 0; font: 500 42px/1.08 Georgia, "Times New Roman", serif; letter-spacing: 0; }
+    h1 em { color: var(--green); font-weight: 400; }
+    .intro-copy { max-width: 530px; margin: 13px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+    .workbench {
+      overflow: hidden; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--white); box-shadow: 0 18px 50px rgb(23 53 45 / 7%);
+      animation: appear .6s .08s ease both;
+    }
+    .mode-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 15px 20px; border-bottom: 1px solid var(--line); background: #fbfcf9;
+    }
+    .mode-label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .segmented { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #f0f4f0; }
+    .mode-button {
+      min-height: 34px; padding: 0 14px; border: 0; border-radius: 5px;
+      background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .mode-button[aria-pressed="true"] { background: white; color: var(--green-dark); box-shadow: 0 1px 4px rgb(23 53 45 / 12%); }
+    .columns { display: grid; grid-template-columns: 1fr 1fr; }
+    .pane { min-width: 0; padding: 18px 20px 14px; }
+    .pane + .pane { border-left: 1px solid var(--line); background: #fcfdfb; }
+    .pane-heading { min-height: 28px; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .pane-title { color: var(--ink); font-size: 12px; font-weight: 800; }
+    .pane-kicker { margin-left: 8px; color: #8a9b91; font-size: 9px; font-weight: 800; letter-spacing: 1px; }
+    .text-area {
+      display: block; width: 100%; min-height: 180px; resize: vertical; padding: 13px 14px;
+      border: 1px solid var(--line); border-radius: 6px; outline: none; background: white;
+      color: var(--ink); font: 13px/1.6 "SFMono-Regular", Consolas, monospace;
+      transition: border-color .16s, box-shadow .16s;
+    }
+    .text-area:focus, .password-input:focus { border-color: #6ea78c; box-shadow: 0 0 0 3px rgb(23 106 83 / 10%); }
+    .text-area::placeholder { color: #a0ada5; font: 13px/1.6 "Avenir Next", Avenir, "Segoe UI", sans-serif; }
+    .output-area { background: #f8faf7; }
+    .pane-meta { display: flex; justify-content: space-between; margin-top: 8px; color: #8a9b91; font-size: 10px; }
+    .copy-button {
+      padding: 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: white;
+      color: var(--green-dark); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .copy-button:hover { border-color: #8ab59b; background: var(--mint); }
+
+    .action-row {
+      display: grid; grid-template-columns: minmax(200px, 1fr) auto; align-items: end; gap: 18px;
+      padding: 16px 20px 18px; border-top: 1px solid var(--line); background: #fbfcf9;
+    }
+    .password-label { display: block; margin-bottom: 7px; color: var(--ink); font-size: 11px; font-weight: 800; }
+    .password-wrap { display: flex; max-width: 460px; }
+    .password-input {
+      width: 100%; min-width: 0; height: 40px; padding: 0 11px; border: 1px solid var(--line);
+      border-right: 0; border-radius: 5px 0 0 5px; outline: none; background: white; color: var(--ink); font: inherit; font-size: 13px;
+    }
+    .toggle-password { padding: 0 12px; border: 1px solid var(--line); border-radius: 0 5px 5px 0; background: white; color: var(--muted); font: inherit; font-size: 11px; cursor: pointer; }
+    .run-button {
+      min-height: 42px; padding: 0 20px; border: 0; border-radius: 5px; background: var(--green);
+      color: white; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+      transition: background .16s, transform .16s;
+    }
+    .run-button:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .run-button:disabled { opacity: .65; cursor: wait; transform: none; }
+    .status { min-height: 22px; padding: 0 20px 12px; color: var(--muted); font-size: 11px; }
+    .status[data-state="error"] { color: var(--error); }
+    .status[data-state="success"] { color: var(--green); }
+    .footnote { display: flex; justify-content: space-between; gap: 20px; padding: 17px 2px 30px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .footnote strong { color: var(--ink); }
+    .footnote span:last-child { text-align: right; }
+    @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 700px) {
+      .page { width: min(100% - 28px, 560px); }
+      .topbar { height: 70px; }
+      .intro { padding: 34px 0 21px; }
+      h1 { font-size: 35px; }
+      .intro-copy { font-size: 13px; }
+      .mode-row { align-items: flex-start; flex-direction: column; gap: 9px; padding: 14px; }
+      .columns { grid-template-columns: 1fr; }
+      .pane { padding: 15px 14px 13px; }
+      .pane + .pane { border-top: 1px solid var(--line); border-left: 0; }
+      .text-area { min-height: 145px; }
+      .action-row { grid-template-columns: 1fr; gap: 14px; padding: 15px 14px; }
+      .password-wrap { max-width: none; }
+      .run-button { width: 100%; }
+      .status { padding: 0 14px 12px; }
+      .footnote { flex-direction: column; gap: 5px; }
+      .footnote span:last-child { text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Cifra, início">
+        <span class="brand-mark" aria-hidden="true">C.</span>
+        <span><span class="brand-name">cifra</span><span class="brand-sub">COFRE DE TEXTO</span></span>
+      </a>
+      <span class="local-tag"><span class="local-dot" aria-hidden="true"></span>Processamento local</span>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">PRIVACIDADE EM PRIMEIRO LUGAR</p>
+      <h1 id="page-title">Texto protegido.<br><em>Sem complicação.</em></h1>
+      <p class="intro-copy">Criptografe uma mensagem com senha ou recupere um texto protegido. Sua senha não é armazenada.</p>
+    </section>
+
+    <main class="workbench">
+      <div class="mode-row">
+        <span class="mode-label">O que você quer fazer?</span>
+        <div class="segmented" role="group" aria-label="Modo de operação">
+          <button class="mode-button" type="button" data-mode="encrypt" aria-pressed="true">Criptografar</button>
+          <button class="mode-button" type="button" data-mode="decrypt" aria-pressed="false">Descriptografar</button>
+        </div>
+      </div>
+
+      <div class="columns">
+        <section class="pane" aria-labelledby="input-label">
+          <div class="pane-heading">
+            <div><span class="pane-title" id="input-label">Seu texto</span><span class="pane-kicker">ENTRADA</span></div>
+          </div>
+          <textarea class="text-area" id="input-text" placeholder="Digite ou cole o texto aqui..." spellcheck="false"></textarea>
+          <div class="pane-meta"><span id="input-hint">Aceita qualquer texto</span><span id="character-count">0 caracteres</span></div>
+        </section>
+
+        <section class="pane" aria-labelledby="output-label">
+          <div class="pane-heading">
+            <div><span class="pane-title" id="output-label">Resultado</span><span class="pane-kicker">SAÍDA</span></div>
+            <button class="copy-button" id="copy-button" type="button">Copiar</button>
+          </div>
+          <textarea class="text-area output-area" id="output-text" placeholder="O resultado aparece aqui..." readonly></textarea>
+          <div class="pane-meta"><span id="output-hint">Aguardando texto</span><span id="output-count">0 caracteres</span></div>
+        </section>
+      </div>
+
+      <div class="action-row">
+        <div>
+          <label class="password-label" for="password">Senha</label>
+          <div class="password-wrap">
+            <input class="password-input" id="password" type="password" autocomplete="current-password" placeholder="Digite uma senha forte">
+            <button class="toggle-password" id="toggle-password" type="button" aria-pressed="false">Mostrar</button>
+          </div>
+        </div>
+        <button class="run-button" id="run-button" type="button">Criptografar texto</button>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </main>
+
+    <footer class="footnote">
+      <span><strong>Proteção autenticada</strong> · Fernet + PBKDF2-HMAC-SHA256</span>
+      <span>Guarde sua senha: ela não pode ser recuperada.</span>
+    </footer>
+  </div>
+
+  <script>
+    const inputText = document.querySelector("#input-text");
+    const outputText = document.querySelector("#output-text");
+    const password = document.querySelector("#password");
+    const runButton = document.querySelector("#run-button");
+    const status = document.querySelector("#status");
+    const modeButtons = [...document.querySelectorAll("[data-mode]")];
+    let mode = "encrypt";
+
+    function setStatus(message, state = "") {
+      status.textContent = message;
+      status.dataset.state = state;
+    }
+
+    function updateCount(element, value) {
+      const count = value.length;
+      element.textContent = `${count} ${count === 1 ? "caractere" : "caracteres"}`;
+    }
+
+    inputText.addEventListener("input", () => {
+      updateCount(document.querySelector("#character-count"), inputText.value);
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        mode = button.dataset.mode;
+        modeButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+        runButton.textContent = mode === "encrypt" ? "Criptografar texto" : "Descriptografar texto";
+        inputText.placeholder = mode === "encrypt" ? "Digite ou cole o texto aqui..." : "Cole aqui o texto criptografado...";
+        document.querySelector("#input-hint").textContent = mode === "encrypt" ? "Aceita qualquer texto" : "Cole o resultado no formato v1$...";
+        setStatus("");
+      });
+    });
+
+    document.querySelector("#toggle-password").addEventListener("click", (event) => {
+      const button = event.currentTarget;
+      const showing = password.type === "text";
+      password.type = showing ? "password" : "text";
+      button.textContent = showing ? "Mostrar" : "Ocultar";
+      button.setAttribute("aria-pressed", String(!showing));
+    });
+
+    runButton.addEventListener("click", async () => {
+      if (!inputText.value.trim()) {
+        setStatus("Digite ou cole um texto primeiro.", "error");
+        inputText.focus();
+        return;
+      }
+      if (!password.value) {
+        setStatus("Informe uma senha para continuar.", "error");
+        password.focus();
+        return;
+      }
+
+      runButton.disabled = true;
+      runButton.textContent = mode === "encrypt" ? "Criptografando..." : "Descriptografando...";
+      setStatus("");
+      try {
+        const response = await fetch("/api/transform", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: inputText.value, password: password.value, mode }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Não foi possível processar o texto.");
+        outputText.value = payload.result;
+        updateCount(document.querySelector("#output-count"), outputText.value);
+        document.querySelector("#output-hint").textContent = mode === "encrypt" ? "Texto protegido com sucesso" : "Texto recuperado com sucesso";
+        setStatus(mode === "encrypt" ? "Texto criptografado com sucesso." : "Texto descriptografado com sucesso.", "success");
+      } catch (error) {
+        setStatus(error.message || "Falha de comunicação com o servidor.", "error");
+      } finally {
+        runButton.disabled = false;
+        runButton.textContent = mode === "encrypt" ? "Criptografar texto" : "Descriptografar texto";
+      }
+    });
+
+    document.querySelector("#copy-button").addEventListener("click", async () => {
+      if (!outputText.value) {
+        setStatus("Não há resultado para copiar.", "error");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(outputText.value);
+        setStatus("Resultado copiado para a área de transferência.", "success");
+      } catch {
+        outputText.focus();
+        outputText.select();
+        setStatus("Selecione e copie o resultado manualmente.", "error");
+      }
+    });
+  </script>
+</body>
+</html>
